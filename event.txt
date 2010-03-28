@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<Event xmlns="urn:schemas-upnp-org:metadata-1-0/AVT/" xmlns:r="urn:schemas-rinconnetworks-com:metadata-1-0/">                                  
+  <InstanceID val="0">
+    <TransportState val="PAUSED_PLAYBACK"/>
+    <CurrentPlayMode val="NORMAL"/>
+    <NumberOfTracks val="159"/>
+    <CurrentTrack val="9"/>
+    <CurrentSection val="0"/>
+    <CurrentTrackURI val="..."/>                       
+    <CurrentTrackDuration val="0:07:06"/>
+    <CurrentTrackMetaData val="...."/>
+    <r:NextTrackURI val="...."/>              
+    <r:NextTrackMetaData val="..."/>
+    <r:EnqueuedTransportURI val="..."/>
+    <r:EnqueuedTransportURIMetaData val="..."/>
+    <PlaybackStorageMedium val="NETWORK"/>
+    <AVTransportURI val="x-rincon-queue:RINCON_000E5812D0DA01400#0"/>
+    <AVTransportURIMetaData val=""/>
+    <CurrentTransportActions val="Play, Stop, Pause, Seek, Next, Previous"/>
+    <TransportStatus val="OK"/>
+    <r:SleepTimerGeneration val="0"/>
+    <r:AlarmRunning val="0"/>
+    <r:SnoozeRunning val="0"/>
+    <r:RestartPending val="0"/>
+    <TransportPlaySpeed val="NOT_IMPLEMENTED"/>
+    <CurrentMediaDuration val="NOT_IMPLEMENTED"/>
+    <RecordStorageMedium val="NOT_IMPLEMENTED"/>
+    <PossiblePlaybackStorageMedia val="NONE, NETWORK"/>
+    <PossibleRecordStorageMedia val="NOT_IMPLEMENTED"/>
+    <RecordMediumWriteStatus val="NOT_IMPLEMENTED"/>
+    <CurrentRecordQualityMode val="NOT_IMPLEMENTED"/>
+    <PossibleRecordQualityModes val="NOT_IMPLEMENTED"/>
+    <NextAVTransportURI val="NOT_IMPLEMENTED"/>
+    <NextAVTransportURIMetaData val="NOT_IMPLEMENTED"/>
+  </InstanceID>
+</Event>

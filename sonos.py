@@ -2,6 +2,12 @@
 from brisa.core.network import parse_url
 from brisa.upnp.control_point.control_point import ControlPoint
 
+from time import sleep
+
+import xml.etree.ElementTree as ET
+
+from xmlevents import XmlEvent
+
 avservice = ('u', 'urn:schemas-upnp-org:service:AVTransport:1')
 rcservice = ('u', 'urn:schemas-upnp-org:service:RenderingControl:1')
 
@@ -16,12 +22,15 @@ def get_rc_service(device):
 
 class SonosCtrl():
 
-    def __init__(self):
+    def __init__(self, zone_name):
 
+        self.zone_name = zone_name
+
+        self.current_server = None
+        
         self.c = ControlPoint()
         self.c.subscribe('new_device_event', self.on_new_device)
         self.c.subscribe('removed_device_event', self.on_removed_device)
-        self.c.subscribe('device_event', self.on_removed_device)
 
     def start(self):
 
@@ -36,88 +45,84 @@ class SonosCtrl():
 
         if not dev:
             return
+
+        if self.current_server != None:
+            print "UPNP: Already have wanted zone..."
+            return
         
-        print 'Got new device:', dev.udn
+        # Look for zone name...
+        if dev.friendly_name.find(self.zone_name) != -1:
+            self.current_server = dev
+        elif dev.devices:
+            for child_dev in dev.devices.values():
+                if child_dev.friendly_name.find(self.zone_name) != -1:
+                    self.current_server = child_dev
+
+        # If we found our zone, subscribe to events...
+        if self.current_server == None:
+            print "UPNP: Ignoring unwanted device: %s" %dev.friendly_name
+        else:
+            print "UPNP: Found wanted zone: %s" %dev.friendly_name
+
+            srv = get_av_service(self.current_server)
+            srv.event_subscribe(self.c.event_host,
+                                self._event_subscribe_callback,
+                                None)
+
+            srv.subscribe_for_variable("LastChange", self._event_callback)
+            sleep(1)
+
+    def on_removed_device(self, udn):
         
-        self.list_devices()
+        print 'UPNP: Device is gone:', udn
 
-    def on_removed_device(udn):
-        print 'Device is gone:', udn
+    def _event_subscribe_callback(self, cargo, subscription_id, timeout):
 
-    def list_devices(self):
+        print "UPNP: Event subscribe done!"
+        print 'UPNP: Subscription ID: ' + str(subscription_id[5:])
+        print 'UPNP: Timeout: ' + str(timeout)
 
-        for d in self.c.get_devices().values():
-            print 'UDN:', d.udn
-            print 'Name:', d.friendly_name
-            print 'Device type:', d.device_type
-            print 'Services:', d.services.keys() # Only print services name
-            ed = [dev.friendly_name for dev in d.devices.values()]
-            print 'Embedded devices:', ed # Only print embedded devices names
-            if len(ed) > 0:
-                self.c.current_server = d.devices.values()[0]
-                print "CURRENT: %s" % self.c.current_server.friendly_name
+    def _event_callback(self, name, value):
 
-                srv = get_av_service(self.c.current_server)
-                srv.subscribe_for_variable("CurrentTrack", self._curtrack)
-            print
+        if name == "LastChange":
+            print "UPNP: Got event: %s" %name
+            ev = XmlEvent(value)
+            ev.dump()
+        else:
+            print "UPNP: Ignoring unknown event: %s" %name
 
-
-
+        
     def pause(self):
-        service = get_av_service(self.c.current_server)
+        service = get_av_service(self.current_server)
         status_response = service.Pause(InstanceID=0)
-        print "STATUS: %s" %str(status_response)
+        print "UPNP: Status: %s" %str(status_response)
 
     def play(self):
-        service = get_av_service(self.c.current_server)
+        service = get_av_service(self.current_server)
         status_response = service.Play(InstanceID=0, Speed=1)
-        print "STATUS: %s" %str(status_response)
+        print "UPNP: Status: %s" %str(status_response)
 
     def next(self):
-        service = get_av_service(self.c.current_server)
+        service = get_av_service(self.current_server)
         status_response = service.Next(InstanceID=0)
-        print "STATUS: %s" %str(status_response)
+        print "UPNP: Status: %s" %str(status_response)
 
     def prev(self):
-        service = get_av_service(self.c.current_server)
+        service = get_av_service(self.current_server)
         status_response = service.Previous(InstanceID=0, Speed=1)
-        print "STATUS: %s" %str(status_response)
+        print "UPNP: Status: %s" %str(status_response)
 
     def volup(self):
-        service = get_rc_service(self.c.current_server)
-        print "SERVICE: %s" %str(service.__dict__.keys())
+        service = get_rc_service(self.current_server)
         status_response = service.SetRelativeVolume(InstanceID=0,
                                                 Channel="Master",
-                                                Adjustment=1)
-        print "STATUS: %s" %str(status_response)
+                                                Adjustment=3)
+        print "UPNP: Status: %s" %str(status_response)
 
     def voldown(self):
-        service = get_rc_service(self.c.current_server)
+        service = get_rc_service(self.current_server)
         status_response = service.SetRelativeVolume(InstanceID=0,
                                                     Channel="Master",
-                                                    Adjustment=-1)
-        print "STATUS: %s" %str(status_response)
+                                                    Adjustment=-3)
+        print "UPNP: Status: %s" %str(status_response)
 
-    def _curtrack(self):
-        
-        print "Track change"
-        
-    def _gettrack(c):
-        srv = get_av_service(self.c.current_server)
-        print "TRACK: %s" %str(srv.get_state_variable("CurrentTrack").__dict__)
-    
-    def commands(self):
-
-        return {'pause': self.pause,
-                'play': self.play,
-                'next': self.next,
-                'prev': self.prev,
-                '+': self.volup,
-                '-': self.voldown,
-                'gett' : self._gettrack}
-
-
-    def testing(self):
-
-        GetMediaInfo(InstanceID=0)
-        

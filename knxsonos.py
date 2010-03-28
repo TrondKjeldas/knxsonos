@@ -13,64 +13,22 @@ import knx
 
 from time import sleep
 
-def _exit():
-    """Stops the _handle_cmds loop
-    """
-    global running_handle_cmds
-    running_handle_cmds = False
-    
-
-def _help():
-    """Prints the available commands that are used in '_handle_cmds' method.
-    """
-    print 'Available commands: '
-    for x in commands.keys():
-        print '\t%s' % x
-
-
-#Control the loop at _handle_cmds method
-running_handle_cmds = True
-commands = {'exit': _exit, 
-            'help': _help}
-
-
-def _handle_cmds():
-    while running_handle_cmds:
-        try:
-            input = raw_input('>>> ').strip()
-            if len(input.split(" ")) > 0:
-                try:
-                    commands[input.split(" ")[0]]()
-                except KeyError, IndexError:
-                    print 'Invalid command, try help'
-        except KeyboardInterrupt, EOFError:
-            global c
-            c.stop()
-            break
-        sleep(100)
-        import threading
-        print "THREADS: %s" %str(threading.enumerate())
-
-    # Stops the main loop
-    reactor.main_quit()
-
-
-
-
-c  = None
 if __name__ == '__main__':
 
     # Create and start Sonos interface
-    c = sonos.SonosCtrl()
-    commands.update(c.commands())
+    c = sonos.SonosCtrl("Living Room")
     c.start()
 
     # Create and start KNX interface
-    k = knx.KnxInterface(c)
+    k = knx.KnxInterface([ ("3/7/0", c.play),
+                           ("3/7/1", c.pause),
+                           ("3/7/2", c.prev),
+                           ("3/7/3", c.next),
+                           ("3/7/4", c.volup),
+                           ("3/7/5", c.voldown) ])
     k.start()
 
-    # Run command interface as well...
-    run_async_function(_handle_cmds, ())
+    # Run reactor...
     reactor.add_after_stop_func(c.stop)
     reactor.add_after_stop_func(k.stop)
     reactor.main()
