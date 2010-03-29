@@ -2,7 +2,7 @@
 #     Simple proxy to be able to control the Sonos system
 #     from the KNX bus. Requires a running eibd daemon.
 #
-#     Copyright 2010 Trond Kjeldås
+#     Copyright 2010 Trond Kjeldaas
 #
 #     This file is part of KnxSonos
 #
@@ -30,8 +30,19 @@ import knx
 
 from time import sleep
 
+banner = """
+KnxSonos Copyright (C) 2010 Trond Kjeldaas
+This program comes with ABSOLUTELY NO WARRANTY;
+This is free software, and you are welcome to redistribute it
+under certain conditions; For more details see the file named
+'LICENSE' which should be included with the release.
+"""
+
 if __name__ == '__main__':
 
+    # Print license and dislaimers...
+    print banner
+    
     # Create and start Sonos interface
     c = sonos.SonosCtrl("Living Room")
     c.start()

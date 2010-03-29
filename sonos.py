@@ -1,5 +1,5 @@
 #
-#     Copyright 2010 Trond Kjeldås
+#     Copyright 2010 Trond Kjeldaas
 #
 #     This file is part of KnxSonos
 #
