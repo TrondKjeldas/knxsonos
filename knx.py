@@ -25,14 +25,14 @@ import sys
 
 class KnxListenGrpAddr():
 
-    def __init__(self, gaddr, action):
+    def __init__(self, url, gaddr, action):
 
         self.gaddr   = gaddr
         self.running = True
         self.action  = action
         
         try:
-            self.con = eibclient.eibclient.EIBSocketURL ("local:/tmp/eib")
+            self.con = eibclient.eibclient.EIBSocketURL (url)
         except (Exception), e:
             print e
 
@@ -80,9 +80,9 @@ class KnxListenGrpAddr():
         
 class KnxInterface():
 
-    def __init__(self, action_table):
+    def __init__(self, url, action_table):
 
-        self.gaddrs = [ KnxListenGrpAddr(g,a)
+        self.gaddrs = [ KnxListenGrpAddr(url, g,a)
                         for g,a in action_table ]
             
         

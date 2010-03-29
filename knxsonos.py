@@ -63,7 +63,11 @@ def loadConfig():
         sys.exit(1)
         
     root = ET.parse(cfgname).getroot()
-    
+
+    # First load KNX related config
+    knx = { "url" : root.find("knx").attrib["url"] }
+
+    # Then load Sonos related config
     zones    = []
     cmd_maps = {}
     for zone in root.findall("zone"):
@@ -77,7 +81,8 @@ def loadConfig():
         
         zones.append( Z )
 
-    return zones
+    
+    return { "knx" : knx, "zones" : zones }
 
 
 if __name__ == '__main__':
@@ -86,11 +91,11 @@ if __name__ == '__main__':
     print banner
 
     # Load config
-    zones = loadConfig()
+    cfg = loadConfig()
 
     # Create and start Sonos controls for each zone
     knx_cmd_map = []
-    for zone in zones:
+    for zone in cfg["zones"]:
         c = sonos.SonosCtrl(zone["name"])
         c.start()
         # Map commands to actual methods, but use the command
@@ -99,7 +104,7 @@ if __name__ == '__main__':
                               for ga, cmd in zone["cmdMap"]] )
 
     # Create and start KNX interface
-    k = knx.KnxInterface(knx_cmd_map)
+    k = knx.KnxInterface(cfg["knx"]["url"], knx_cmd_map)
     k.start()
 
     # Run reactor...
