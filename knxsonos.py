@@ -25,10 +25,15 @@ reactor = install_default_reactor()
 
 from brisa.core.threaded_call import run_async_function
 
+import xml.etree.ElementTree as ET
+
+from time import sleep
+
+import sys, os
+
 import sonos
 import knx
 
-from time import sleep
 
 banner = """
 KnxSonos Copyright (C) 2010 Trond Kjeldaas
@@ -38,22 +43,63 @@ under certain conditions; For more details see the file named
 'LICENSE' which should be included with the release.
 """
 
+
+def loadConfig():
+
+    # Check if config file were specified
+    cfgname = False
+    try:
+        if os.access(sys.argv[sys.argv.index('-c')+1], os.R_OK):
+            cfgname = sys.argv[sys.argv.index('-c')+1]
+    except ValueError:
+        # No config file, try default
+        if os.access("knxsonos.config", os.R_OK):
+            cfgname = "knxsonos.config"
+            
+    if not cfgname:
+        print "ERROR: Failed to load configuration file."
+        print "ERROR: Either specify one with the -c option, or make"
+        print "ERROR: sure that a file named knxsonos.config exists."
+        sys.exit(1)
+        
+    root = ET.parse(cfgname).getroot()
+    
+    zones    = []
+    cmd_maps = {}
+    for zone in root.findall("zone"):
+        Z = { "name" : zone.attrib["name"] }
+        cmd_map = []
+        for cmd in zone.findall("mapping"):
+            cmd_map.append( ( cmd.attrib["groupAddress"],
+                              cmd.attrib["command"] ) )
+            
+        Z["cmdMap"] = cmd_map
+        
+        zones.append( Z )
+
+    return zones
+
+
 if __name__ == '__main__':
 
     # Print license and dislaimers...
     print banner
-    
-    # Create and start Sonos interface
-    c = sonos.SonosCtrl("Living Room")
-    c.start()
+
+    # Load config
+    zones = loadConfig()
+
+    # Create and start Sonos controls for each zone
+    knx_cmd_map = []
+    for zone in zones:
+        c = sonos.SonosCtrl(zone["name"])
+        c.start()
+        # Map commands to actual methods, but use the command
+        # name instead of a method if no method is found...
+        knx_cmd_map.extend( [ (ga, c.getCmdDict().get(cmd, cmd))
+                              for ga, cmd in zone["cmdMap"]] )
 
     # Create and start KNX interface
-    k = knx.KnxInterface([ ("3/7/0", c.play),
-                           ("3/7/1", c.pause),
-                           ("3/7/2", c.prev),
-                           ("3/7/3", c.next),
-                           ("3/7/4", c.volup),
-                           ("3/7/5", c.voldown) ])
+    k = knx.KnxInterface(knx_cmd_map)
     k.start()
 
     # Run reactor...

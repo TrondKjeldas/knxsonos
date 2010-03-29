@@ -49,6 +49,16 @@ class SonosCtrl():
         self.c.subscribe('new_device_event', self.on_new_device)
         self.c.subscribe('removed_device_event', self.on_removed_device)
 
+    def getCmdDict(self):
+        """Return a dictionary that can be used to map commans to methods"""
+
+        return { "play" : self.play,
+                 "pause" : self.pause,
+                 "next" : self.next,
+                 "previous" : self.prev,
+                 "volume+" : self.volumeUp,
+                 "volume-" : self.volumeDown }
+        
     def start(self):
 
         self.c.start()
@@ -64,7 +74,8 @@ class SonosCtrl():
             return
 
         if self.current_server != None:
-            print "UPNP: Already have wanted zone..."
+            print ("UPNP: Already have wanted zone, "
+                   "ignoring device: %s" %dev.friendly_name)
             return
         
         # Look for zone name...
@@ -129,14 +140,14 @@ class SonosCtrl():
         status_response = service.Previous(InstanceID=0, Speed=1)
         print "UPNP: Status: %s" %str(status_response)
 
-    def volup(self):
+    def volumeUp(self):
         service = get_rc_service(self.current_server)
         status_response = service.SetRelativeVolume(InstanceID=0,
                                                 Channel="Master",
                                                 Adjustment=3)
         print "UPNP: Status: %s" %str(status_response)
 
-    def voldown(self):
+    def volumeDown(self):
         service = get_rc_service(self.current_server)
         status_response = service.SetRelativeVolume(InstanceID=0,
                                                     Channel="Master",

@@ -65,8 +65,11 @@ class KnxListenGrpAddr():
 
             print("KNX:  Group address %s"
                   " received from %s" %(self.gaddr, individual2string(src)))
-            
-            self.action()
+
+            if callable(self.action):
+                self.action()
+            else:
+                print "KNX:  Can not call action: %s" %str(self.action)
 
         print "KNX:  Ending thread..."
         print "KNX:  Closing..."
