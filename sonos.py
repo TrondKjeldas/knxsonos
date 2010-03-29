@@ -121,36 +121,42 @@ class SonosCtrl():
 
         
     def pause(self):
-        service = get_av_service(self.current_server)
-        status_response = service.Pause(InstanceID=0)
-        print "UPNP: Status: %s" %str(status_response)
+        if self.current_server != None:
+            service = get_av_service(self.current_server)
+            status_response = service.Pause(InstanceID=0)
+            print "UPNP: Status: %s" %str(status_response)
 
     def play(self):
-        service = get_av_service(self.current_server)
-        status_response = service.Play(InstanceID=0, Speed=1)
-        print "UPNP: Status: %s" %str(status_response)
+        if self.current_server != None:
+            service = get_av_service(self.current_server)
+            status_response = service.Play(InstanceID=0, Speed=1)
+            print "UPNP: Status: %s" %str(status_response)
 
     def next(self):
-        service = get_av_service(self.current_server)
-        status_response = service.Next(InstanceID=0)
-        print "UPNP: Status: %s" %str(status_response)
+        if self.current_server != None:
+            service = get_av_service(self.current_server)
+            status_response = service.Next(InstanceID=0)
+            print "UPNP: Status: %s" %str(status_response)
 
     def prev(self):
-        service = get_av_service(self.current_server)
-        status_response = service.Previous(InstanceID=0, Speed=1)
-        print "UPNP: Status: %s" %str(status_response)
+        if self.current_server != None:
+            service = get_av_service(self.current_server)
+            status_response = service.Previous(InstanceID=0, Speed=1)
+            print "UPNP: Status: %s" %str(status_response)
 
     def volumeUp(self):
-        service = get_rc_service(self.current_server)
-        status_response = service.SetRelativeVolume(InstanceID=0,
-                                                Channel="Master",
-                                                Adjustment=3)
-        print "UPNP: Status: %s" %str(status_response)
+        if self.current_server != None:
+            service = get_rc_service(self.current_server)
+            status_response = service.SetRelativeVolume(InstanceID=0,
+                                                        Channel="Master",
+                                                        Adjustment=3)
+            print "UPNP: Status: %s" %str(status_response)
 
     def volumeDown(self):
-        service = get_rc_service(self.current_server)
-        status_response = service.SetRelativeVolume(InstanceID=0,
-                                                    Channel="Master",
-                                                    Adjustment=-3)
-        print "UPNP: Status: %s" %str(status_response)
+        if self.current_server != None:
+            service = get_rc_service(self.current_server)
+            status_response = service.SetRelativeVolume(InstanceID=0,
+                                                        Channel="Master",
+                                                        Adjustment=-3)
+            print "UPNP: Status: %s" %str(status_response)
 

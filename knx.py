@@ -48,28 +48,31 @@ class KnxListenGrpAddr():
 
         #print "KNX: Entering read loop..."
         while self.running:
+            try:
+                (result,
+                 buf, src) = eibclient.eibclient.EIBGetAPDU_Src (self.con)
+                if len(buf) < 2:
+                    print "Read failed"
+                    sys.exit(1)
+                if (ord(buf[0]) & 0x3 or (ord(buf[1]) & 0xc0) == 0xc0):
+                    print"Unknown APDU from %s" % individual2string(src)
+                    
+                #print "RESULT: %s" %str(result)
+                #print "SRC: %s" %str(src)
+                #sys.stdout.write("BUF: ")
+                #for b in buf:
+                #    sys.stdout.write("0x%x " % ord(b))
+                #sys.stdout.write("\n")
 
-            (result, buf, src) = eibclient.eibclient.EIBGetAPDU_Src (self.con)
-            if len(buf) < 2:
-                print "Read failed"
-                sys.exit(1)
-            if (ord(buf[0]) & 0x3 or (ord(buf[1]) & 0xc0) == 0xc0):
-                print"Unknown APDU from %s" % individual2string(src)
-
-            #print "RESULT: %s" %str(result)
-            #print "SRC: %s" %str(src)
-            #sys.stdout.write("BUF: ")
-            #for b in buf:
-            #    sys.stdout.write("0x%x " % ord(b))
-            #sys.stdout.write("\n")
-
-            print("KNX:  Group address %s"
-                  " received from %s" %(self.gaddr, individual2string(src)))
-
-            if callable(self.action):
-                self.action()
-            else:
-                print "KNX:  Can not call action: %s" %str(self.action)
+                print("KNX:  Group address %s"
+                      " received from %s" %(self.gaddr, individual2string(src)))
+                
+                if callable(self.action):
+                    self.action()
+                else:
+                    print "KNX:  Can not call action: %s" %str(self.action)
+            except (Exception), e:
+                print e
 
         print "KNX:  Ending thread..."
         print "KNX:  Closing..."
