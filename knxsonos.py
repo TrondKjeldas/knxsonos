@@ -73,6 +73,19 @@ def loadConfig():
     for zone in root.findall("zone"):
         Z = { "name" : zone.attrib["name"] }
 
+        def loadCommand(cmd):
+            # Optional command parameter...
+            if "param" in cmd.attrib.keys():
+                param = cmd.attrib["param"]
+            else:
+                param = None
+
+            # Command itself
+            command = cmd.attrib["command"]
+
+            return command,param
+
+            
         # Load macros first, so we can expand them immidiately
         # when loading command mappings
         macros = {}
@@ -80,27 +93,33 @@ def loadConfig():
             macros[macro.attrib["name"]] = []
 
             for action in macro.findall("action"):
-                macros[macro.attrib["name"]].append(action.attrib["command"])
+
+                command,param = loadCommand(action)
+
+                macros[macro.attrib["name"]].append((command, param))
 
         # Using recursion makes it easier to handle nested macros...
         def maybeExpandMacro(cl):
             ret = []
-            for c in cl:
+            for (c,p) in cl:
                 if c in macros.keys():
                     ret.extend(maybeExpandMacro(macros[c]))
                 else:
-                    ret.append(c)
+                    ret.append((c,p))
             return ret
 
 
         # Then load command mappings...
         cmd_map = []
         for cmd in zone.findall("mapping"):
+
+            command,param = loadCommand(cmd)
+
             # Possibly expand macros...
-            command = maybeExpandMacro([cmd.attrib["command"]])
+            command = maybeExpandMacro([(command,param)])
 
             #print "expanded command: %s" %str(command)
-
+                
             cmd_map.append( ( cmd.attrib["groupAddress"],
                               command ) )
 
@@ -128,12 +147,13 @@ if __name__ == '__main__':
         # Map commands to actual methods, but use the command
         # name instead of a method if no method is found...
         for ga, cmds in zone["cmdMap"]:
-            cmds2 = [ c.getCmdDict().get(oneCmd, oneCmd) for oneCmd in cmds ]
-
+            cmds2 = [ (c.getCmdDict().get(oneCmd, oneCmd),param)
+                      for oneCmd, param in cmds ]
             knx_cmd_map.append((ga, cmds2))
 
     #print knx_cmd_map
-
+    #sys.exit(1)
+    
     # Create and start KNX interface
     k = knx.KnxInterface(cfg["knx"]["url"], knx_cmd_map)
     k.start()

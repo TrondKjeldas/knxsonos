@@ -57,8 +57,8 @@ class SonosCtrl():
                  "next" : self.next,
                  "previous" : self.prev,
                  "volume+" : self.volumeUp,
-                 "volume-" : self.volumeDown }
-        
+                 "volume-" : self.volumeDown,
+                 "volumeSet" : self.volumeSet }
     def start(self):
 
         self.c.start()
@@ -142,6 +142,19 @@ class SonosCtrl():
         if self.current_server != None:
             service = get_av_service(self.current_server)
             status_response = service.Previous(InstanceID=0, Speed=1)
+            print "UPNP: Status: %s" %str(status_response)
+
+    def volumeSet(self, value):
+        if self.current_server != None:
+            value = int(value)
+            if value < 0 or value > 100:
+                print "UPNP: Illegal volume value: %d" %value
+                return
+            
+            service = get_rc_service(self.current_server)
+            status_response = service.SetVolume(InstanceID=0,
+                                                Channel="Master",
+                                                DesiredVolume=value)
             print "UPNP: Status: %s" %str(status_response)
 
     def volumeUp(self):
