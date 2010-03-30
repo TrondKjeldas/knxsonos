@@ -72,13 +72,40 @@ def loadConfig():
     cmd_maps = {}
     for zone in root.findall("zone"):
         Z = { "name" : zone.attrib["name"] }
+
+        # Load macros first, so we can expand them immidiately
+        # when loading command mappings
+        macros = {}
+        for macro in zone.findall("macro"):
+            macros[macro.attrib["name"]] = []
+
+            for action in macro.findall("action"):
+                macros[macro.attrib["name"]].append(action.attrib["command"])
+
+        # Using recursion makes it easier to handle nested macros...
+        def maybeExpandMacro(cl):
+            ret = []
+            for c in cl:
+                if c in macros.keys():
+                    ret.extend(maybeExpandMacro(macros[c]))
+                else:
+                    ret.append(c)
+            return ret
+
+
+        # Then load command mappings...
         cmd_map = []
         for cmd in zone.findall("mapping"):
+            # Possibly expand macros...
+            command = maybeExpandMacro([cmd.attrib["command"]])
+
+            #print "expanded command: %s" %str(command)
+
             cmd_map.append( ( cmd.attrib["groupAddress"],
-                              cmd.attrib["command"] ) )
-            
+                              command ) )
+
         Z["cmdMap"] = cmd_map
-        
+
         zones.append( Z )
 
     
@@ -100,8 +127,12 @@ if __name__ == '__main__':
         c.start()
         # Map commands to actual methods, but use the command
         # name instead of a method if no method is found...
-        knx_cmd_map.extend( [ (ga, c.getCmdDict().get(cmd, cmd))
-                              for ga, cmd in zone["cmdMap"]] )
+        for ga, cmds in zone["cmdMap"]:
+            cmds2 = [ c.getCmdDict().get(oneCmd, oneCmd) for oneCmd in cmds ]
+
+            knx_cmd_map.append((ga, cmds2))
+
+    #print knx_cmd_map
 
     # Create and start KNX interface
     k = knx.KnxInterface(cfg["knx"]["url"], knx_cmd_map)

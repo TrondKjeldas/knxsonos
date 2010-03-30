@@ -29,7 +29,15 @@ class KnxListenGrpAddr():
 
         self.gaddr   = gaddr
         self.running = True
-        self.action  = action
+
+
+        # The action could be just one action, or a list of actions.
+        # Convert the list to a list of just one, then it can alway
+        # be handled as a list...
+        if type(action) == type([]):
+            self.action  = action
+        else:
+            self.action = [ action ]
         
         try:
             self.con = eibclient.eibclient.EIBSocketURL (url)
@@ -66,11 +74,12 @@ class KnxListenGrpAddr():
 
                 print("KNX:  Group address %s"
                       " received from %s" %(self.gaddr, individual2string(src)))
-                
-                if callable(self.action):
-                    self.action()
-                else:
-                    print "KNX:  Can not call action: %s" %str(self.action)
+
+                for a in self.action:
+                    if callable(a):
+                        a()
+                    else:
+                        print "KNX:  Can not call action: %s" %str(a)
             except (Exception), e:
                 print e
 
