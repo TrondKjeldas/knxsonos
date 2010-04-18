@@ -74,8 +74,9 @@ class SonosCtrl():
             return
 
         if self.current_server != None:
-            print ("UPNP: Already have wanted zone, "
-                   "ignoring device: %s" %dev.friendly_name)
+            print ("UPNP(%s): Already have wanted zone, "
+                   "ignoring device: %s" %(self.zone_name,
+                                           dev.friendly_name))
             return
         
         # Look for zone name...
@@ -88,9 +89,11 @@ class SonosCtrl():
 
         # If we found our zone, subscribe to events...
         if self.current_server == None:
-            print "UPNP: Ignoring unwanted device: %s" %dev.friendly_name
+            print "UPNP(%s): Ignoring unwanted device: %s" %(self.zone_name,
+                                                             dev.friendly_name)
         else:
-            print "UPNP: Found wanted zone: %s" %dev.friendly_name
+            print "UPNP(%s): Found wanted zone: %s" %(self.zone_name,
+                                                      dev.friendly_name)
 
             srv = get_av_service(self.current_server)
             srv.event_subscribe(self.c.event_host,
@@ -102,60 +105,68 @@ class SonosCtrl():
 
     def on_removed_device(self, udn):
         
-        print 'UPNP: Device is gone:', udn
+        print 'UPNP(%s): Device is gone: %s' %(self.zone_name, udn)
 
     def _event_subscribe_callback(self, cargo, subscription_id, timeout):
 
-        print "UPNP: Event subscribe done!"
-        print 'UPNP: Subscription ID: ' + str(subscription_id[5:])
-        print 'UPNP: Timeout: ' + str(timeout)
+        print "UPNP(%s): Event subscribe done!" %self.zone_name
+        print 'UPNP(%s): Subscription ID: %s' %(self.zone_name,
+                                                str(subscription_id[5:]))
+        print 'UPNP(%s): Timeout: %s' %(self.zone_name,
+                                        str(timeout))
 
     def _event_callback(self, name, value):
 
         if name == "LastChange":
-            print "UPNP: Got event: %s" %name
+            print "UPNP(%s): Got event: %s" %(self.zone_name, name)
             ev = XmlEvent(value)
             ev.dump()
         else:
-            print "UPNP: Ignoring unknown event: %s" %name
+            print "UPNP(%s): Ignoring unknown event: %s" %(self.zone_name,
+                                                           name)
 
+
+    def print_status(self, status):
+
+            print "UPNP(%s): Status: %s" %(self.zone_name, str(status))
         
     def pause(self):
         if self.current_server != None:
             service = get_av_service(self.current_server)
             status_response = service.Pause(InstanceID=0)
-            print "UPNP: Status: %s" %str(status_response)
+            self.print_status(status_response)
 
     def play(self):
         if self.current_server != None:
             service = get_av_service(self.current_server)
             status_response = service.Play(InstanceID=0, Speed=1)
-            print "UPNP: Status: %s" %str(status_response)
+            self.print_status(status_response)
 
     def next(self):
         if self.current_server != None:
             service = get_av_service(self.current_server)
             status_response = service.Next(InstanceID=0)
-            print "UPNP: Status: %s" %str(status_response)
+            self.print_status(status_response)
 
     def prev(self):
         if self.current_server != None:
             service = get_av_service(self.current_server)
             status_response = service.Previous(InstanceID=0, Speed=1)
-            print "UPNP: Status: %s" %str(status_response)
+            self.print_status(status_response)
 
     def volumeSet(self, value):
         if self.current_server != None:
             value = int(value)
             if value < 0 or value > 100:
-                print "UPNP: Illegal volume value: %d" %value
+                print "UPNP(%s): Illegal volume value: %d" %(self.zone_name,
+                                                             value)
                 return
             
             service = get_rc_service(self.current_server)
             status_response = service.SetVolume(InstanceID=0,
                                                 Channel="Master",
                                                 DesiredVolume=value)
-            print "UPNP: Status: %s" %str(status_response)
+            self.print_status(status_response)
 
     def volumeUp(self):
         if self.current_server != None:
@@ -163,7 +174,7 @@ class SonosCtrl():
             status_response = service.SetRelativeVolume(InstanceID=0,
                                                         Channel="Master",
                                                         Adjustment=3)
-            print "UPNP: Status: %s" %str(status_response)
+            self.print_status(status_response)
 
     def volumeDown(self):
         if self.current_server != None:
@@ -171,5 +182,4 @@ class SonosCtrl():
             status_response = service.SetRelativeVolume(InstanceID=0,
                                                         Channel="Master",
                                                         Adjustment=-3)
-            print "UPNP: Status: %s" %str(status_response)
-
+            self.print_status(status_response)
