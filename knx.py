@@ -25,8 +25,9 @@ import sys
 
 class KnxListenGrpAddr():
 
-    def __init__(self, url, gaddr, action):
+    def __init__(self, url, zone_name, gaddr, action):
 
+        self.name    = zone_name
         self.gaddr   = gaddr
         self.running = True
 
@@ -78,9 +79,9 @@ class KnxListenGrpAddr():
                 for (a,p) in self.action:
                     if callable(a):
                         if p == None:
-                            a()
+                            a(self.name)
                         else:
-                            a(p)
+                            a(self.name, p)
                     else:
                         print "KNX:  Can not call action: %s" %str(a)
             except (Exception), e:
@@ -94,8 +95,8 @@ class KnxInterface():
 
     def __init__(self, url, action_table):
 
-        self.gaddrs = [ KnxListenGrpAddr(url, g,a)
-                        for g,a in action_table ]
+        self.gaddrs = [ KnxListenGrpAddr(url, zn, g,a)
+                        for zn, g,a in action_table ]
             
         
     def start(self):

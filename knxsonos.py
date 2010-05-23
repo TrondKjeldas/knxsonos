@@ -139,17 +139,20 @@ if __name__ == '__main__':
     # Load config
     cfg = loadConfig()
 
-    # Create and start Sonos controls for each zone
+    # Create and start Sonos control
     knx_cmd_map = []
+    
+    c = sonos.SonosCtrl([ zone["name"] for zone in cfg["zones"] ])
+    c.start()
+
+
+    # Map commands to actual methods, but use the command
+    # name instead of a method if no method is found...
     for zone in cfg["zones"]:
-        c = sonos.SonosCtrl(zone["name"])
-        c.start()
-        # Map commands to actual methods, but use the command
-        # name instead of a method if no method is found...
         for ga, cmds in zone["cmdMap"]:
             cmds2 = [ (c.getCmdDict().get(oneCmd, oneCmd),param)
                       for oneCmd, param in cmds ]
-            knx_cmd_map.append((ga, cmds2))
+            knx_cmd_map.append((zone["name"], ga, cmds2))
 
     #print knx_cmd_map
     #sys.exit(1)

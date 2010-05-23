@@ -21,6 +21,15 @@ from StringIO import StringIO
 
 class XmlEvent():
 
+    def makefile(self, s):
+
+        f = StringIO(s)
+        f.seek(0)
+        return f
+
+
+class LastChangeEvent(XmlEvent):
+
     def __init__(self, event):
 
         f = self.makefile(event)
@@ -80,3 +89,39 @@ class XmlEvent():
         print "XML:     Album Artist: " + aa
         print "XML:     Title: " + t
         
+
+class ZoneGroupEvent(XmlEvent):
+
+    def __init__(self, event):
+
+        f = self.makefile(event)
+        self.root = ET.parse(f).getroot()
+        
+        self.groups = []
+
+        _gs   = self.root.findall("ZoneGroup")
+        for g in _gs:
+            coord = g.attrib["Coordinator"]
+            _members = g.findall("ZoneGroupMember")
+            members = [ m.attrib["UUID"] for m in _members ]
+            self.groups.append( (coord, members) )
+
+
+    def dump(self):
+            
+        for coordinator,members in self.groups:
+            print "Coordinator: %s" %coordinator
+            print "Members:     %s" %members
+            print
+    
+
+
+# <ZoneGroups>
+#    <ZoneGroup Coordinator="RINCON_000E58334C5A01400" ID="RINCON_000E58334C5A01400:25">
+#        <ZoneGroupMember UUID="RINCON_000E58334C5A01400" Location="http://192.168.1.66:1400/xml/zone_player.xml" ZoneName="Bathroom" Icon="x-rincon-roomicon:bathroom" SoftwareVersion="13.7-29120" MinCompatibleVersion="12.0-00000" BootSeq="5"/>
+#        <ZoneGroupMember UUID="RINCON_000E58334AF601400" Location="http://192.168.1.175:1400/xml/zone_player.xml" ZoneName="Kitchen" Icon="x-rincon-roomicon:kitchen" SoftwareVersion="13.7-29120" MinCompatibleVersion="12.0-00000" BootSeq="5"/>
+#    </ZoneGroup>
+#    <ZoneGroup Coordinator="RINCON_000E5812D0DA01400" ID="RINCON_000E58334AF601400:10">
+#       <ZoneGroupMember UUID="RINCON_000E5812D0DA01400" Location="http://192.168.1.39:1400/xml/zone_player.xml" ZoneName="Living Room" Icon="x-rincon-roomicon:living" SoftwareVersion="13.7-29120" MinCompatibleVersion="12.0-00000" BootSeq="51"/>
+#     </ZoneGroup>
+# </ZoneGroups> 
