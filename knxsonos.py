@@ -44,6 +44,78 @@ under certain conditions; For more details see the file named
 """
 
 
+def loadCommand(cmd):
+    # Optional command parameter...
+    if "param" in cmd.attrib.keys():
+        param = cmd.attrib["param"]
+    else:
+        param = None
+
+    # Command itself
+    command = cmd.attrib["command"]
+    
+    return command,param
+
+def loadMacros(element):
+    macros = {}
+    for macro in element.findall("macro"):
+        macros[macro.attrib["name"]] = []
+        
+        for action in macro.findall("action"):
+            
+            command,param = loadCommand(action)
+            
+            macros[macro.attrib["name"]].append((command, param))
+            
+    return macros
+
+# Using recursion makes it easier to handle nested macros...
+def maybeExpandMacro(macros, cl):
+    ret = []
+    for (c,p) in cl:
+        if c in macros.keys():
+            ret.extend(maybeExpandMacro(macros, macros[c]))
+        else:
+            ret.append((c,p))
+    return ret
+
+def loadCommands(macros, element):
+    cmd_map = []
+    for cmd in element.findall("mapping"):
+        
+        command,param = loadCommand(cmd)
+        
+        # Possibly expand macros...
+        command = maybeExpandMacro(macros, [(command,param)])
+        
+        #print "expanded command: %s" %str(command)
+        
+        cmd_map.append( ( cmd.attrib["groupAddress"],
+                          command ) )
+        
+    return cmd_map
+    
+
+def loadZoneConfig(global_macros, root, zone):
+
+    Z = { "name" : zone.attrib["name"] }
+
+    # make local copy of global macros, as we dont want to
+    # leak local macros into the global dict...
+    macros = dict(global_macros)
+    
+    # Load macros first, so we can expand them immidiately
+    # when loading command mappings
+    macros.update(loadMacros(zone))
+
+    # First load global command mappings
+    Z["cmdMap"] = loadCommands(macros, root)
+    
+    # Then load per-zone command mappings...
+    Z["cmdMap"].extend(loadCommands(macros, zone))
+
+    return Z
+
 def loadConfig():
 
     # Check if config file were specified
@@ -70,61 +142,14 @@ def loadConfig():
     # Then load Sonos related config
     zones    = []
     cmd_maps = {}
+
+    # First load "global" macros and commands...
+    global_macros = loadMacros(root)
+    global_commands = loadMacros(root)
+
+    # Then load "per zone" macros and commands...
     for zone in root.findall("zone"):
-        Z = { "name" : zone.attrib["name"] }
-
-        def loadCommand(cmd):
-            # Optional command parameter...
-            if "param" in cmd.attrib.keys():
-                param = cmd.attrib["param"]
-            else:
-                param = None
-
-            # Command itself
-            command = cmd.attrib["command"]
-
-            return command,param
-
-            
-        # Load macros first, so we can expand them immidiately
-        # when loading command mappings
-        macros = {}
-        for macro in zone.findall("macro"):
-            macros[macro.attrib["name"]] = []
-
-            for action in macro.findall("action"):
-
-                command,param = loadCommand(action)
-
-                macros[macro.attrib["name"]].append((command, param))
-
-        # Using recursion makes it easier to handle nested macros...
-        def maybeExpandMacro(cl):
-            ret = []
-            for (c,p) in cl:
-                if c in macros.keys():
-                    ret.extend(maybeExpandMacro(macros[c]))
-                else:
-                    ret.append((c,p))
-            return ret
-
-
-        # Then load command mappings...
-        cmd_map = []
-        for cmd in zone.findall("mapping"):
-
-            command,param = loadCommand(cmd)
-
-            # Possibly expand macros...
-            command = maybeExpandMacro([(command,param)])
-
-            #print "expanded command: %s" %str(command)
-                
-            cmd_map.append( ( cmd.attrib["groupAddress"],
-                              command ) )
-
-        Z["cmdMap"] = cmd_map
-
+        Z = loadZoneConfig(global_macros, root, zone)
         zones.append( Z )
 
     
@@ -154,7 +179,9 @@ if __name__ == '__main__':
                       for oneCmd, param in cmds ]
             knx_cmd_map.append((zone["name"], ga, cmds2))
 
-    #print knx_cmd_map
+    #for x in knx_cmd_map:
+    #    print x
+    #    print
     #sys.exit(1)
     
     # Create and start KNX interface
