@@ -64,7 +64,17 @@ class SonosZone():
             print "Failed to set new coordinator: %s" %coord
             print "Known devices: %s" %zone_from_udn.keys()
             
-    
+
+
+#
+#
+# To join group: SetAvTransportURI,
+#                current URI ==x-rincon:RINCON_000E58334AF601400
+# 
+# To leave group: BecomeCoordinatorOfStandaloneGroup
+#
+#
+
 class SonosCtrl():
 
     def __init__(self, zone_names):
