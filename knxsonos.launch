@@ -1,0 +1,18 @@
+#!/usr/bin/launchtool -C
+
+
+
+verbose = yes
+tag = knxsonos
+command = python knxsonos.py
+daemon = yes
+
+wait times = 10
+good running time = 5
+ininite runs = yes
+
+launchtool output = file:/tmp/knxsonos.log
+command output = file:/tmp/knxsonos.log
+launchtool errors = file:/tmp/knxsonos.errors
+command errors = file:/tmp/knxsonos.errors
+
