@@ -4,7 +4,10 @@
 
 verbose = yes
 tag = knxsonos
-command = python knxsonos.py
+
+
+command = python /home/trond/src/knxsonos/knxsonos.py -c /home/trond/src/knxsonos/knxsonos.config
+user = trond
 daemon = yes
 
 wait times = 10
