@@ -1682,3 +1682,26 @@ IMG_WRONG_CHECKLIM = 58
 IMG_INVALID_KEY = 59
 IMG_AUTHORIZATION_FAILED = 60
 IMG_KEY_WRITE = 61
+
+
+def readaddr(addr):
+    if addr.find(".") != -1:
+	(a,b,c) = addr.split(".")
+	return ((int(a) & 0x0f) << 12) | ((int(b) & 0x0f) << 8) | ((int(c) & 0xff))
+    return int(addr,16) & 0xffff
+
+def readgaddr(addr):
+    if addr.count("/") == 2:
+	(a,b,c) = addr.split("/")
+	return ((int(a) & 0x1f) << 11) | ((int(b) & 0x07) << 8) | ((int(c) & 0xff))
+    elif addr.count("/") == 1:
+	(a,b) = addr.split("/")
+	return ((int(a) & 0x1f) << 11) | ((int(b) & 0x7FF))
+    return int(addr,16) & 0xffff
+
+def group2string(addr):
+    return ("%d/%d/%d" % ((addr >> 11) & 0x1f, (addr >> 8) & 0x07, (addr) & 0xff))
+
+def individual2string(addr):
+    return ("%d.%d.%d" % ((addr >> 12) & 0x0f, (addr >> 8) & 0x0f, (addr) & 0xff))
+
