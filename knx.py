@@ -69,7 +69,6 @@ class KnxListenGrpAddr():
                 if length < 2:
                     print "Read failed"
                     sys.exit(1)
-                print buf.buffer
                 if ((buf.buffer[0] & 0x3) or (buf.buffer[1] & 0xc0) == 0xc0):
                     print"Unknown APDU from %s" % individual2string(src.data)
                     
