@@ -145,7 +145,6 @@ def loadConfig():
 
     # First load "global" macros and commands...
     global_macros = loadMacros(root)
-    global_commands = loadMacros(root)
 
     # Then load "per zone" macros and commands...
     for zone in root.findall("zone"):
