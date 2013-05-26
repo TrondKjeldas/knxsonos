@@ -6,7 +6,7 @@ verbose = yes
 tag = knxsonos
 
 
-command = python /home/trond/src/knxsonos/knxsonos.py -c /home/trond/src/knxsonos/knxsonos.config
+command = python /home/trond/knxsonos/knxsonos.py -c /home/trond/knxsonos/knxsonos.config
 user = trond
 daemon = yes
 
