@@ -18,6 +18,7 @@
 #
 import soco
 
+from time import sleep
 
 #
 #
@@ -37,8 +38,8 @@ class SonosCtrl():
     def __init__(self, zone_names):
 
         self.zones = {}
-        for name in zone_names:
-            self.zones[name] = None
+
+        self.needed_zones = zone_names
 
 
     def getCmdDict(self):
@@ -55,13 +56,39 @@ class SonosCtrl():
 
     def start(self):
 
-        zs = list(soco.discover())
-        for z in zs:
-            print z
-            self.zones[z.player_name] = z
-        
+        tries = 1
+        zs = set()
+        while True:
 
-        print "Found zones:"
+            nz = list(self.needed_zones)
+            #print "Need to find these zones: %s" %nz
+
+            zz = soco.discover(10)
+
+            if zz:
+                zs.update(zz)
+
+            for z in list(zs):
+
+                #print "Found: %s" %z.player_name
+                self.zones[z.player_name] = z
+
+                try:
+                    nz.remove(z.player_name)
+                except ValueError:
+                    #print z.player_name
+                    pass
+                #print "Remaining: %s" %nz
+
+            if len(nz) == 0:
+                break
+
+            print "Missing zones: %s" %nz
+            print "New attempt in 5 sec..."
+            sleep(5)
+
+
+        print "Found all needed zones:"
         for k,v in self.zones.items():
             print "     %s" %k
 
