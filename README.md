@@ -8,3 +8,4 @@ Specify KNX group addresses for triggering Sonos play/pause/volum/etc.
 
 Supports simple macros, to run multiple commands for the same group address.
 
+Used github.com/SoCo/SoCo for Sonos control.
