@@ -16,21 +16,26 @@
 #     You should have received a copy of the GNU General Public License
 #     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 #
-from brisa.core.threaded_call import run_async_function
-
 from EIBConnection import EIBConnection, EIBBuffer, EIBAddr
 from EIBConnection import individual2string, readgaddr
 
-import sys
+from sys import argv, exit
+from threading import Thread
 
-class KnxListenGrpAddr():
+class KnxListenGrpAddr(Thread):
 
     def __init__(self, url, zone_name, gaddr, action):
 
-        self.name    = zone_name
-        self.gaddr   = gaddr
-        self.running = True
+        # Call base class constructor first...
+        Thread.__init__(self)
 
+        self.name    = "%s_%s" %(zone_name.encode("utf-8"), gaddr)
+        self.zone_name = zone_name
+        self.gaddr   = gaddr
+        self.stopping = False
+
+        # To make sure the thread exit when the main program terminates...
+        self.daemon = True
 
         # The action could be just one action, or a list of actions.
         # Convert the list to a list of just one, then it can alway
@@ -56,12 +61,17 @@ class KnxListenGrpAddr():
             sys.exit(1);
 
     def stop(self):
-        self.running = False
-        
-    def telegram_loop(self):
+
+        self.stopping = True
+        self.join(0.1)
+
+        if self.isAlive():
+            print "Thread %s did not stop!" %self.name
+
+    def run(self):
 
         #print "KNX: Entering read loop..."
-        while self.running:
+        while not self.stopping:
             try:
                 src = EIBAddr()
                 buf = EIBBuffer()
@@ -85,9 +95,9 @@ class KnxListenGrpAddr():
                 for (a,p) in self.action:
                     if callable(a):
                         if p == None:
-                            a(self.name)
+                            a(self.zone_name)
                         else:
-                            a(self.name, p)
+                            a(self.zone_name, p)
                     else:
                         print "KNX:  Can not call action: %s" %str(a)
             except (Exception), e:
@@ -108,7 +118,7 @@ class KnxInterface():
     def start(self):
 
         for g in self.gaddrs:
-            run_async_function(g.telegram_loop, ())
+            g.start()
 
     def stop(self):
 

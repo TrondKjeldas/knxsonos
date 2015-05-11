@@ -19,12 +19,6 @@
 #     You should have received a copy of the GNU General Public License
 #     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 #
-
-from brisa.core.reactors import install_default_reactor
-reactor = install_default_reactor()
-
-from brisa.core.threaded_call import run_async_function
-
 import xml.etree.ElementTree as ET
 
 from time import sleep
@@ -187,20 +181,13 @@ if __name__ == '__main__':
     k = knx.KnxInterface(cfg["knx"]["url"], knx_cmd_map)
     k.start()
 
-    # Run reactor...
-    reactor.add_after_stop_func(c.stop)
-    reactor.add_after_stop_func(k.stop)
-    reactor.main()
-    
+    # Run main loop...
+    # (nothing to do, everything happens in other threads)
+    while True:
+        try:
+            sleep(1)
 
-
-
-
-
-
-
-
-
-
-
-
+        except KeyboardInterrupt:
+            k.stop()
+            c.stop()
+            exit(0)
