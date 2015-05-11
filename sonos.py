@@ -85,7 +85,6 @@ class SonosCtrl():
 
             self.zones[name] = None
 
-        
         self.c = ControlPoint()
         self.c.subscribe('new_device_event', self.on_new_device)
         self.c.subscribe('removed_device_event', self.on_removed_device)
@@ -122,6 +121,7 @@ class SonosCtrl():
         duplicate = False
         for zn in self.zones.keys():
             # Look for zone name...
+            #print "#######" + dev.friendly_name
             if dev.friendly_name.find(zn) != -1:
                 if self.zones[zn] == None:
                     self.zones[zn] = SonosZone(zn, dev, None)
@@ -131,6 +131,7 @@ class SonosCtrl():
                     duplicate = True
             elif dev.devices:
                 for child_dev in dev.devices.values():
+                    #print "##### %s <-> %s" %(child_dev.friendly_name,zn)
                     if child_dev.friendly_name.find(zn) != -1:
                         if self.zones[zn] == None:
                             self.zones[zn] = SonosZone(zn, child_dev, dev)
@@ -145,6 +146,15 @@ class SonosCtrl():
 
         if found == None:
             print "UPNP: Ignoring unwanted device: %s" %dev.friendly_name
+            for x in dev.__dict__:
+                ##print x
+                pass
+            if dev.devices:
+                for child_dev in dev.devices.values():
+                    #print "#######" + child_dev.friendly_name
+                    for x in child_dev.__dict__:
+                        #print "C: " + x
+                        pass
             return
         elif duplicate:
             print "UPNP: Already have zone: %s" %dev.friendly_name
