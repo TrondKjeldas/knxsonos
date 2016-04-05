@@ -1,4 +1,4 @@
-# knxsonos
+# knxsonos [![Build Status](https://travis-ci.org/TrondKjeldas/knxsonos.svg?branch=master)](https://travis-ci.org/TrondKjeldas/knxsonos)
 
 Control a Sonos system from your KNX installation.
 
