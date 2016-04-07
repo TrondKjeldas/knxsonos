@@ -20,7 +20,7 @@ The SoCo python module must be installed (pip install soco)
 
 ### Installation
 
-TBD
+TBD, for now just download to a directory and run the knxsonos.py script.
 
 ### Configuration
 
