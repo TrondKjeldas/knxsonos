@@ -5,6 +5,22 @@ import knx
 import knxsonos
 import sonos
 
+
+class wrapGetAPDU(object):
+
+    def __init__(self, kl):
+        self.kl = kl
+
+    def EIBGetAPDU_Src(self, buf, src):
+
+        self.kl.stopping = True
+        buf.buffer = [1, 2]
+        return 2
+
+    def EIBClose(self):
+        pass
+
+
 class TestKnxSonos(unittest.TestCase):
 
     def setUp(self):
@@ -32,11 +48,24 @@ class TestKnxSonos(unittest.TestCase):
         inst.EIBSocketURL.return_value = 0
         inst.EIBOpenT_Group.return_value = 0
 
+        action = mock.Mock()
+
         kl = knx.KnxListenGrpAddr(
-            "ip:localhost", "zone1", "1/1/1", (None, None))
+            "ip:localhost", "zone1", "1/1/1", (action, "param"))
 
         inst.EIBSocketURL.assert_called_with("ip:localhost")
         inst.EIBOpenT_Group.assert_called_with("xx", 0)
+
+        wr = wrapGetAPDU(kl)
+
+        kl.con = mock.Mock(wraps=wr)
+
+        kl.run()
+
+        action.assert_called_once_with("zone1", "param")
+
+        wrc.EIBClose.assert_called_once_with()
+        wrc.EIBGetAPDU_Src.assert_called_once_with(mock.ANY, mock.ANY)
 
     @mock.patch("sonos.discover")
     def test_sonos(self, mock_discover):
