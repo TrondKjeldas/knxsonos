@@ -1,10 +1,7 @@
 #!/usr/bin/launchtool -C
 
-
-
 verbose = yes
 tag = knxsonos
-
 
 command = python /home/trond/knxsonos/knxsonos.py -c /home/trond/knxsonos/knxsonos.config
 user = trond
@@ -18,4 +15,3 @@ launchtool output = file:/tmp/knxsonos.log
 command output = file:/tmp/knxsonos.log
 launchtool errors = file:/tmp/knxsonos.errors
 command errors = file:/tmp/knxsonos.errors
-
