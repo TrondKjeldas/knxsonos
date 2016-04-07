@@ -1,4 +1,5 @@
-#
+#!/usr/bin/python
+##
 #     Simple proxy to be able to control the Sonos system
 #     from the KNX bus. Requires a running eibd daemon.
 #
