@@ -8,7 +8,7 @@ Specify KNX group addresses for triggering Sonos play/pause/volum/etc.
 
 Supports simple macros, to run multiple commands for the same group address.
 
-Uses github.com/SoCo/SoCo for Sonos control.
+Uses [SoCo](https://github.com/SoCo/SoCo) for Sonos control.
 
 ## Documentation
 
@@ -20,7 +20,7 @@ The SoCo python module must be installed (pip install soco)
 
 ### Installation
 
-TBD
+TBD, for now just download to a directory and run the knxsonos.py script.
 
 ### Configuration
 
