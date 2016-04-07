@@ -1,4 +1,9 @@
 import unittest
+import mock
+
+import knx
+import knxsonos
+import sonos
 
 class TestKnxSonos(unittest.TestCase):
 
@@ -8,9 +13,58 @@ class TestKnxSonos(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_init(self):
+    def test_config(self):
 
-        pass
+        cfg = knxsonos.loadConfig()
+
+        self.assertEqual(cfg["knx"]["url"], "ip:gax58")
+
+        # Should be 8 zones in example config
+        self.assertEqual(len(cfg["zones"]), 8)
+
+    @mock.patch("knx.EIBConnection")
+    @mock.patch("knx.readgaddr")
+    def test_knx(self, mock_readg, mock_eibc):
+
+        mock_readg.return_value = "xx"
+
+        inst = mock_eibc.return_value
+        inst.EIBSocketURL.return_value = 0
+        inst.EIBOpenT_Group.return_value = 0
+
+        kl = knx.KnxListenGrpAddr(
+            "ip:localhost", "zone1", "1/1/1", (None, None))
+
+        inst.EIBSocketURL.assert_called_with("ip:localhost")
+        inst.EIBOpenT_Group.assert_called_with("xx", 0)
+
+    @mock.patch("sonos.discover")
+    def test_sonos(self, mock_discover):
+
+        z1 = mock.Mock(player_name="z1")
+        z2 = mock.Mock(player_name="z2")
+
+        mock_discover.return_value = [z1, z2]
+
+        s = sonos.SonosCtrl(["z1", "z2"])
+        s.start()
+
+        mock_discover.assert_called_with(10)
+
+        s.play("z1")
+        z1.group.coordinator.play.assert_called_once_with()
+        self.assertFalse(z2.group.coordinator.play.called)
+
+        s.pause("z2")
+        z2.group.coordinator.pause.assert_called_once_with()
+        self.assertFalse(z1.group.coordinator.pause.called)
+
+        s.setURI("z2", "theURI")
+        s.setURI("z1", "theOtherURI")
+        z2.group.coordinator.play_uri.assert_called_once_with(
+            "theURI", start=True)
+        z1.group.coordinator.play_uri.assert_called_once_with(
+            "theOtherURI", start=True)
 
 if __name__ == '__m':
     unittest.main()

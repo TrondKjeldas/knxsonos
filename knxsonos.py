@@ -24,7 +24,8 @@ import xml.etree.ElementTree as ET
 
 from time import sleep
 
-import sys, os
+import sys
+import os
 
 import sonos
 import knx
@@ -48,94 +49,99 @@ def loadCommand(cmd):
 
     # Command itself
     command = cmd.attrib["command"]
-    
-    return command,param
+
+    return command, param
+
 
 def loadMacros(element):
     macros = {}
     for macro in element.findall("macro"):
         macros[macro.attrib["name"]] = []
-        
+
         for action in macro.findall("action"):
-            
-            command,param = loadCommand(action)
-            
+
+            command, param = loadCommand(action)
+
             macros[macro.attrib["name"]].append((command, param))
-            
+
     return macros
 
 # Using recursion makes it easier to handle nested macros...
+
+
 def maybeExpandMacro(macros, cl):
     ret = []
-    for (c,p) in cl:
+    for (c, p) in cl:
         if c in macros.keys():
             ret.extend(maybeExpandMacro(macros, macros[c]))
         else:
-            ret.append((c,p))
+            ret.append((c, p))
     return ret
+
 
 def loadCommands(macros, element):
     cmd_map = []
     for cmd in element.findall("mapping"):
-        
-        command,param = loadCommand(cmd)
-        
+
+        command, param = loadCommand(cmd)
+
         # Possibly expand macros...
-        command = maybeExpandMacro(macros, [(command,param)])
-        
-        #print "expanded command: %s" %str(command)
-        
-        cmd_map.append( ( cmd.attrib["groupAddress"],
-                          command ) )
-        
+        command = maybeExpandMacro(macros, [(command, param)])
+
+        # print "expanded command: %s" %str(command)
+
+        cmd_map.append((cmd.attrib["groupAddress"],
+                        command))
+
     return cmd_map
-    
+
 
 def loadZoneConfig(global_macros, root, zone):
 
-    Z = { "name" : zone.attrib["name"] }
+    Z = {"name": zone.attrib["name"]}
 
     # make local copy of global macros, as we dont want to
     # leak local macros into the global dict...
     macros = dict(global_macros)
-    
+
     # Load macros first, so we can expand them immidiately
     # when loading command mappings
     macros.update(loadMacros(zone))
 
     # First load global command mappings
     Z["cmdMap"] = loadCommands(macros, root)
-    
+
     # Then load per-zone command mappings...
     Z["cmdMap"].extend(loadCommands(macros, zone))
 
     return Z
+
 
 def loadConfig():
 
     # Check if config file were specified
     cfgname = False
     try:
-        if os.access(sys.argv[sys.argv.index('-c')+1], os.R_OK):
-            cfgname = sys.argv[sys.argv.index('-c')+1]
+        if os.access(sys.argv[sys.argv.index('-c') + 1], os.R_OK):
+            cfgname = sys.argv[sys.argv.index('-c') + 1]
     except ValueError:
         # No config file, try default
         if os.access("knxsonos.config", os.R_OK):
             cfgname = "knxsonos.config"
-            
+
     if not cfgname:
         print "ERROR: Failed to load configuration file."
         print "ERROR: Either specify one with the -c option, or make"
         print "ERROR: sure that a file named knxsonos.config exists."
         sys.exit(1)
-        
+
     root = ET.parse(cfgname).getroot()
 
     # First load KNX related config
-    knx = { "url" : root.find("knx").attrib["url"] }
+    knx = {"url": root.find("knx").attrib["url"]}
 
     # Then load Sonos related config
-    zones    = []
+    zones = []
     cmd_maps = {}
 
     # First load "global" macros and commands...
@@ -144,10 +150,9 @@ def loadConfig():
     # Then load "per zone" macros and commands...
     for zone in root.findall("zone"):
         Z = loadZoneConfig(global_macros, root, zone)
-        zones.append( Z )
+        zones.append(Z)
 
-    
-    return { "knx" : knx, "zones" : zones }
+    return {"knx": knx, "zones": zones}
 
 
 if __name__ == '__main__':
@@ -160,24 +165,23 @@ if __name__ == '__main__':
 
     # Create and start Sonos control
     knx_cmd_map = []
-    
-    c = sonos.SonosCtrl([ zone["name"] for zone in cfg["zones"] ])
-    c.start()
 
+    c = sonos.SonosCtrl([zone["name"] for zone in cfg["zones"]])
+    c.start()
 
     # Map commands to actual methods, but use the command
     # name instead of a method if no method is found...
     for zone in cfg["zones"]:
         for ga, cmds in zone["cmdMap"]:
-            cmds2 = [ (c.getCmdDict().get(oneCmd, oneCmd),param)
-                      for oneCmd, param in cmds ]
+            cmds2 = [(c.getCmdDict().get(oneCmd, oneCmd), param)
+                     for oneCmd, param in cmds]
             knx_cmd_map.append((zone["name"], ga, cmds2))
 
-    #for x in knx_cmd_map:
+    # for x in knx_cmd_map:
     #    print x
     #    print
-    #sys.exit(1)
-    
+    # sys.exit(1)
+
     # Create and start KNX interface
     k = knx.KnxInterface(cfg["knx"]["url"], knx_cmd_map)
     k.start()

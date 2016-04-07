@@ -16,7 +16,7 @@
 #     You should have received a copy of the GNU General Public License
 #     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 #
-import soco
+from soco import discover
 
 from time import sleep
 
@@ -24,7 +24,7 @@ from time import sleep
 #
 # To join group: SetAvTransportURI,
 #                current URI ==x-rincon:RINCON_000E58334AF601400
-# 
+#
 # To leave group: BecomeCoordinatorOfStandaloneGroup
 #
 #
@@ -44,14 +44,14 @@ class SonosCtrl():
     def getCmdDict(self):
         """Return a dictionary that can be used to map commans to methods"""
 
-        return { "play" : self.play,
-                 "pause" : self.pause,
-                 "next" : self.next,
-                 "previous" : self.prev,
-                 "volume+" : self.volumeUp,
-                 "volume-" : self.volumeDown,
-                 "volumeSet" : self.volumeSet,
-                 "setURI" : self.setURI }
+        return {"play": self.play,
+                "pause": self.pause,
+                "next": self.next,
+                "previous": self.prev,
+                "volume+": self.volumeUp,
+                "volume-": self.volumeDown,
+                "volumeSet": self.volumeSet,
+                "setURI": self.setURI}
 
     def start(self):
 
@@ -60,36 +60,35 @@ class SonosCtrl():
         while True:
 
             nz = list(self.needed_zones)
-            #print "Need to find these zones: %s" %nz
+            # print "Need to find these zones: %s" %nz
 
-            zz = soco.discover(10)
+            zz = discover(10)
 
             if zz:
                 zs.update(zz)
 
             for z in list(zs):
 
-                #print "Found: %s" %z.player_name
+                # print "Found: %s" %z.player_name
                 self.zones[z.player_name] = z
 
                 try:
                     nz.remove(z.player_name)
                 except ValueError:
-                    #print z.player_name
+                    # print z.player_name
                     pass
-                #print "Remaining: %s" %nz
+                # print "Remaining: %s" %nz
 
             if len(nz) == 0:
                 break
 
-            print "Missing zones: %s" %nz
+            print "Missing zones: %s" % nz
             print "New attempt in 5 sec..."
             sleep(5)
 
-
         print "Found all needed zones:"
-        for k,v in self.zones.items():
-            print "     %s" %k
+        for k, v in self.zones.items():
+            print "     %s" % k
 
     def stop(self):
         pass
@@ -114,12 +113,12 @@ class SonosCtrl():
 
         value = int(value)
         if value < 0 or value > 100:
-            print "Zone(%s): Illegal volume value: %d" %(zn, value)
+            print "Zone(%s): Illegal volume value: %d" % (zn, value)
             return
-            
+
         self.zones[zn].group.coordinator.volume = value
 
-    def volumeUp(self, zn): 
+    def volumeUp(self, zn):
         if self.zones[zn].group.coordinator.volume < 100:
             self.zones[zn].group.coordinator.volume += 1
 
@@ -127,9 +126,7 @@ class SonosCtrl():
         if self.zones[zn].group.coordinator.volume > 0:
             self.zones[zn].group.coordinator.volume -= 1
 
-
     def setURI(self, zn, value):
 
-        print "Setting URI: %s" %value
+        print "Setting URI: %s" % value
         self.zones[zn].group.coordinator.play_uri(value, start=True)
-
