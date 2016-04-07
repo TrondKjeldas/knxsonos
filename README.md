@@ -9,3 +9,32 @@ Specify KNX group addresses for triggering Sonos play/pause/volum/etc.
 Supports simple macros, to run multiple commands for the same group address.
 
 Uses github.com/SoCo/SoCo for Sonos control.
+
+## Documentation
+
+### Prerequisites
+
+A KNX IP router/gateway must be available and accessible (currently tested only with EIBD.)
+
+The SoCo python module must be installed (pip install soco)
+
+### Installation
+
+TBD
+
+### Configuration
+
+The configuration file is written in XML format.
+
+It defines a mapping between a KKNX group address, and one or mor Sonos commands.
+
+Such mappings can be defined either to apply to all zones, or to specific zones only.
+
+It is also possible to define macros, which are groups of commands that can be called upon from both mappings or other macros.
+
+See the knxsonos.config file for example configuration, with comments explaining the various parts.
+
+
+
+
+
