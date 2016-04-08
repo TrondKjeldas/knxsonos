@@ -1,4 +1,4 @@
-# knxsonos [![Build Status](https://travis-ci.org/TrondKjeldas/knxsonos.svg?branch=master)](https://travis-ci.org/TrondKjeldas/knxsonos)
+# knxsonos [![Build Status](https://travis-ci.org/TrondKjeldas/knxsonos.svg?branch=master)](https://travis-ci.org/TrondKjeldas/knxsonos) [![Latest PyPI version](https://img.shields.io/pypi/v/knxsonos.svg?style=flat)](https://pypi.python.org/pypi/knxsonos/)
 
 Control a Sonos system from your KNX installation.
 
@@ -20,7 +20,9 @@ The SoCo python module must be installed (pip install soco)
 
 ### Installation
 
-TBD, for now just download to a directory and run the knxsonos.py script.
+The easiest wat to install knxsonos is to use pip, command:
+
+>pip install knxsonos
 
 ### Configuration
 
