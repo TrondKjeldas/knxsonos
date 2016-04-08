@@ -155,44 +155,60 @@ def loadConfig():
     return {"knx": knx, "zones": zones}
 
 
+def main():
+    """The main entry point to knxsonos.py.
+    This is installed as the script entry point.
+    """
+    try:
+        status = 0
+
+        # Print license and dislaimers...
+        print banner
+
+        # Load config
+        cfg = loadConfig()
+
+        # Create and start Sonos control
+        knx_cmd_map = []
+
+        c = sonos.SonosCtrl([zone["name"] for zone in cfg["zones"]])
+        c.start()
+
+        # Map commands to actual methods, but use the command
+        # name instead of a method if no method is found...
+        for zone in cfg["zones"]:
+            for ga, cmds in zone["cmdMap"]:
+                cmds2 = [(c.getCmdDict().get(oneCmd, oneCmd), param)
+                         for oneCmd, param in cmds]
+                knx_cmd_map.append((zone["name"], ga, cmds2))
+
+        # for x in knx_cmd_map:
+        #    print x
+        #    print
+        # sys.exit(1)
+
+        # Create and start KNX interface
+        k = knx.KnxInterface(cfg["knx"]["url"], knx_cmd_map)
+        k.start()
+
+        # Run main loop...
+        # (nothing to do, everything happens in other threads)
+        while True:
+            try:
+                sleep(1)
+
+            except KeyboardInterrupt:
+                k.stop()
+                c.stop()
+                exit(0)
+    except SystemExit as err:
+        # The user called `sys.exit()`.  Exit with their argument, if any.
+        if err.args:
+            status = err.args[0]
+        else:
+            status = None
+    return status
+
 if __name__ == '__main__':
 
-    # Print license and dislaimers...
-    print banner
-
-    # Load config
-    cfg = loadConfig()
-
-    # Create and start Sonos control
-    knx_cmd_map = []
-
-    c = sonos.SonosCtrl([zone["name"] for zone in cfg["zones"]])
-    c.start()
-
-    # Map commands to actual methods, but use the command
-    # name instead of a method if no method is found...
-    for zone in cfg["zones"]:
-        for ga, cmds in zone["cmdMap"]:
-            cmds2 = [(c.getCmdDict().get(oneCmd, oneCmd), param)
-                     for oneCmd, param in cmds]
-            knx_cmd_map.append((zone["name"], ga, cmds2))
-
-    # for x in knx_cmd_map:
-    #    print x
-    #    print
-    # sys.exit(1)
-
-    # Create and start KNX interface
-    k = knx.KnxInterface(cfg["knx"]["url"], knx_cmd_map)
-    k.start()
-
-    # Run main loop...
-    # (nothing to do, everything happens in other threads)
-    while True:
-        try:
-            sleep(1)
-
-        except KeyboardInterrupt:
-            k.stop()
-            c.stop()
-            exit(0)
+    main()

@@ -107,7 +107,7 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'knxsonos=knxsonos.knxsonos.main',
+            'knxsonos=knxsonos.knxsonos:main',
         ],
     },
 )
