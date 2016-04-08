@@ -56,9 +56,8 @@ class TestKnxSonos(unittest.TestCase):
         inst.EIBSocketURL.assert_called_with("ip:localhost")
         inst.EIBOpenT_Group.assert_called_with("xx", 0)
 
-        wr = wrapGetAPDU(kl)
-
-        kl.con = mock.Mock(wraps=wr)
+        wrc = mock.Mock(wraps=wrapGetAPDU(kl))
+        kl.con = wrc
 
         kl.run()
 
