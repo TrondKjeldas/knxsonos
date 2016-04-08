@@ -1,4 +1,4 @@
-# knxsonos [![Build Status](https://travis-ci.org/TrondKjeldas/knxsonos.svg?branch=master)](https://travis-ci.org/TrondKjeldas/knxsonos) [![Latest PyPI version](https://img.shields.io/pypi/v/knxsonos.svg?style=flat)](https://pypi.python.org/pypi/knxsonos/)
+# knxsonos [![Build Status](https://travis-ci.org/TrondKjeldas/knxsonos.svg?branch=master)](https://travis-ci.org/TrondKjeldas/knxsonos) [![Latest PyPI version](https://img.shields.io/pypi/v/knxsonos.svg?style=flat)](https://pypi.python.org/pypi/knxsonos/) [![Number of PyPI downloads](https://img.shields.io/pypi/dm/knxsonos.svg?style=flat)](https://pypi.python.org/pypi/knxsonos/)
 
 Control a Sonos system from your KNX installation.
 
