@@ -1,9 +1,9 @@
 import unittest
 import mock
 
-import knx
-import knxsonos
-import sonos
+import knxsonos.knx
+import knxsonos.knxsonos
+import knxsonos.sonos
 
 
 class wrapGetAPDU(object):
@@ -31,15 +31,15 @@ class TestKnxSonos(unittest.TestCase):
 
     def test_config(self):
 
-        cfg = knxsonos.loadConfig()
+        cfg = knxsonos.knxsonos.loadConfig()
 
         self.assertEqual(cfg["knx"]["url"], "ip:gax58")
 
         # Should be 8 zones in example config
         self.assertEqual(len(cfg["zones"]), 8)
 
-    @mock.patch("knx.EIBConnection")
-    @mock.patch("knx.readgaddr")
+    @mock.patch("knxsonos.knx.EIBConnection")
+    @mock.patch("knxsonos.knx.readgaddr")
     def test_knx(self, mock_readg, mock_eibc):
 
         mock_readg.return_value = "xx"
@@ -50,7 +50,7 @@ class TestKnxSonos(unittest.TestCase):
 
         action = mock.Mock()
 
-        kl = knx.KnxListenGrpAddr(
+        kl = knxsonos.knx.KnxListenGrpAddr(
             "ip:localhost", "zone1", "1/1/1", (action, "param"))
 
         inst.EIBSocketURL.assert_called_with("ip:localhost")
@@ -66,7 +66,7 @@ class TestKnxSonos(unittest.TestCase):
         wrc.EIBClose.assert_called_once_with()
         wrc.EIBGetAPDU_Src.assert_called_once_with(mock.ANY, mock.ANY)
 
-    @mock.patch("sonos.discover")
+    @mock.patch("knxsonos.sonos.discover")
     def test_sonos(self, mock_discover):
 
         z1 = mock.Mock(player_name="z1")
@@ -74,7 +74,7 @@ class TestKnxSonos(unittest.TestCase):
 
         mock_discover.return_value = [z1, z2]
 
-        s = sonos.SonosCtrl(["z1", "z2"])
+        s = knxsonos.sonos.SonosCtrl(["z1", "z2"])
         s.start()
 
         mock_discover.assert_called_with(10)
