@@ -9,6 +9,10 @@ build:
 install:
 	python setup.py install --user
 
+.PHONY: upload
+upload:
+	twine upload dist/*
+	
 .PHONY: test
 test:
 	coverage run -m unittest discover -s test/

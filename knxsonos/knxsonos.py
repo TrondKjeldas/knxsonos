@@ -35,7 +35,7 @@ import knx
 logger = logging.getLogger('knxsonos')
 
 banner = """
-KnxSonos Copyright (C) 2010 Trond Kjeldaas
+KnxSonos Copyright (C) 2010-2016 Trond Kjeldaas
 This program comes with ABSOLUTELY NO WARRANTY;
 This is free software, and you are welcome to redistribute it
 under certain conditions; For more details see the file named
