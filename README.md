@@ -36,7 +36,7 @@ It is also possible to define macros, which are groups of commands that can be c
 
 See the knxsonos.config file for example configuration, with comments explaining the various parts.
 
-
+The configuration file must either be specified using the -c option, or be called knxsonos.config and be present in the current directory.
 
 
 
