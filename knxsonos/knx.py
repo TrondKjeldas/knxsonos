@@ -21,6 +21,7 @@ from EIBConnection import individual2string, readgaddr
 
 from sys import argv, exit
 from threading import Thread
+import logging
 
 
 class KnxListenGrpAddr(Thread):
@@ -29,6 +30,9 @@ class KnxListenGrpAddr(Thread):
 
         # Call base class constructor first...
         Thread.__init__(self)
+
+        # create logger
+        self.logger = logging.getLogger('knxsonos')
 
         self.name = "%s_%s" % (zone_name.encode("utf-8"), gaddr)
         self.zone_name = zone_name
@@ -49,16 +53,16 @@ class KnxListenGrpAddr(Thread):
         try:
             self.con = EIBConnection()
         except:
-            print "Could not instanciate EIBConnection"
+            self.logger.error("Could not instanciate EIBConnection")
             exit(1)
 
         if self.con.EIBSocketURL(url) != 0:
-            print "Could not connect to: %s" % url
+            self.logger.error("Could not connect to: %s" % url)
             exit(1)
 
         dest = readgaddr(self.gaddr)
         if (self.con.EIBOpenT_Group(dest, 0) == -1):
-            print "Connect failed"
+            self.logger.error("Connect failed")
             exit(1)
 
     def stop(self):
@@ -67,29 +71,23 @@ class KnxListenGrpAddr(Thread):
         self.join(0.1)
 
         if self.isAlive():
-            print "Thread %s did not stop!" % self.name
+            self.logger.warning("Thread %s did not stop!" % self.name)
 
     def run(self):
 
-        # print "KNX: Entering read loop..."
+        self.logger.debug("KNX: Entering read loop...")
         while not self.stopping:
             try:
                 src = EIBAddr()
                 buf = EIBBuffer()
                 length = self.con.EIBGetAPDU_Src(buf, src)
                 if length < 2:
-                    print "Read failed"
+                    self.logger.error("Read failed")
                     exit(1)
                 if ((buf.buffer[0] & 0x3) or (buf.buffer[1] & 0xc0) == 0xc0):
-                    print"Unknown APDU from %s" % individual2string(src.data)
+                    self.logger.warning("Unknown APDU from %s" % individual2string(src.data))
 
-                # print "LENGTH: %s" %str(length)
-                # print "SRC: %s" %str(src.data)
-                #sys.stdout.write("BUF: ")
-                # for b in buf.buffer:
-                #    sys.stdout.write("0x%x " % b)
-                # sys.stdout.write("\n")
-                print("KNX:  Group address %s"
+                self.logger.info("KNX:  Group address %s"
                       " received from %s" % (self.gaddr,
                                              individual2string(src.data)))
 
@@ -100,12 +98,12 @@ class KnxListenGrpAddr(Thread):
                         else:
                             a(self.zone_name, p)
                     else:
-                        print "KNX:  Can not call action: %s" % str(a)
+                        self.logger.error("KNX:  Can not call action: %s" % str(a))
             except (Exception), e:
-                print e
+                self.logger.error(e)
 
-        print "KNX:  Ending thread..."
-        print "KNX:  Closing..."
+        self.logger.info("KNX:  Ending thread...")
+        self.logger.info("KNX:  Closing...")
         self.con.EIBClose()
 
 

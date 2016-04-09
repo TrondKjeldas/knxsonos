@@ -26,10 +26,13 @@ from time import sleep
 
 import sys
 import os
+import logging
 
 import sonos
 import knx
 
+# create logger
+logger = logging.getLogger('knxsonos')
 
 banner = """
 KnxSonos Copyright (C) 2010 Trond Kjeldaas
@@ -88,7 +91,7 @@ def loadCommands(macros, element):
         # Possibly expand macros...
         command = maybeExpandMacro(macros, [(command, param)])
 
-        # print "expanded command: %s" %str(command)
+        # logger.debug("expanded command: %s" %str(command))
 
         cmd_map.append((cmd.attrib["groupAddress"],
                         command))
@@ -130,9 +133,9 @@ def loadConfig():
             cfgname = "knxsonos.config"
 
     if not cfgname:
-        print "ERROR: Failed to load configuration file."
-        print "ERROR: Either specify one with the -c option, or make"
-        print "ERROR: sure that a file named knxsonos.config exists."
+        logger.error("ERROR: Failed to load configuration file.")
+        logger.error("ERROR: Either specify one with the -c option, or make")
+        logger.error("ERROR: sure that a file named knxsonos.config exists.")
         sys.exit(1)
 
     root = ET.parse(cfgname).getroot()
@@ -163,7 +166,7 @@ def main():
         status = 0
 
         # Print license and dislaimers...
-        print banner
+        logger.info(banner)
 
         # Load config
         cfg = loadConfig()
@@ -181,11 +184,6 @@ def main():
                 cmds2 = [(c.getCmdDict().get(oneCmd, oneCmd), param)
                          for oneCmd, param in cmds]
                 knx_cmd_map.append((zone["name"], ga, cmds2))
-
-        # for x in knx_cmd_map:
-        #    print x
-        #    print
-        # sys.exit(1)
 
         # Create and start KNX interface
         k = knx.KnxInterface(cfg["knx"]["url"], knx_cmd_map)

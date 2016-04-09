@@ -17,8 +17,8 @@
 #     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 #
 from soco import discover
-
 from time import sleep
+import logging
 
 #
 #
@@ -36,6 +36,8 @@ from time import sleep
 class SonosCtrl():
 
     def __init__(self, zone_names):
+
+        self.logger = logging.getLogger('knxsonos')
 
         self.zones = {}
 
@@ -60,7 +62,7 @@ class SonosCtrl():
         while True:
 
             nz = list(self.needed_zones)
-            # print "Need to find these zones: %s" %nz
+            self.logger.debug("Need to find these zones: %s" %nz)
 
             zz = discover(10)
 
@@ -69,26 +71,26 @@ class SonosCtrl():
 
             for z in list(zs):
 
-                # print "Found: %s" %z.player_name
+                self.logger.debug("Found: %s" %z.player_name)
                 self.zones[z.player_name] = z
 
                 try:
                     nz.remove(z.player_name)
                 except ValueError:
-                    # print z.player_name
+                    self.logger.debug(z.player_name)
                     pass
-                # print "Remaining: %s" %nz
+                self.logger.debug("Remaining: %s" %nz)
 
             if len(nz) == 0:
                 break
 
-            print "Missing zones: %s" % nz
-            print "New attempt in 5 sec..."
+            self.logger.warning("Missing zones: %s" % nz)
+            self.logger.warning("New attempt in 5 sec...")
             sleep(5)
 
-        print "Found all needed zones:"
+        self.logger.info("Found all needed zones:")
         for k, v in self.zones.items():
-            print "     %s" % k
+            self.logger.info("     %s" % k)
 
     def stop(self):
         pass
@@ -113,7 +115,7 @@ class SonosCtrl():
 
         value = int(value)
         if value < 0 or value > 100:
-            print "Zone(%s): Illegal volume value: %d" % (zn, value)
+            self.logger.warning("Zone(%s): Illegal volume value: %d" % (zn, value))
             return
 
         self.zones[zn].group.coordinator.volume = value
@@ -128,5 +130,5 @@ class SonosCtrl():
 
     def setURI(self, zn, value):
 
-        print "Setting URI: %s" % value
+        self.logger.info("Setting URI: %s" % value)
         self.zones[zn].group.coordinator.play_uri(value, start=True)
