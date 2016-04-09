@@ -1,9 +1,11 @@
 
 
+.PHONY: build
 build:
 	python setup.py build bdist
 	python setup.py build sdist
 
+.PHONY: install
 install:
 	python setup.py install --user
 
