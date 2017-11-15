@@ -1,10 +1,13 @@
 import unittest
 import mock
+import time
 
 import knxsonos.knx
 import knxsonos.knxsonos
 import knxsonos.sonos
 
+def sleep1(t):
+    time.sleep(1)
 
 class wrapGetAPDU(object):
 
@@ -24,10 +27,13 @@ class wrapGetAPDU(object):
 class TestKnxSonos(unittest.TestCase):
 
     def setUp(self):
-        pass
+
+        self.sonos = None
 
     def tearDown(self):
-        pass
+
+        if self.sonos:
+            self.sonos.stop()
 
     def test_config(self):
 
@@ -66,8 +72,9 @@ class TestKnxSonos(unittest.TestCase):
         wrc.EIBClose.assert_called_once_with()
         wrc.EIBGetAPDU_Src.assert_called_once_with(mock.ANY, mock.ANY)
 
+    @mock.patch("knxsonos.sonos.sleep", wraps=sleep1)
     @mock.patch("knxsonos.sonos.discover")
-    def test_sonos(self, mock_discover):
+    def test_sonos(self, mock_discover, mock_sleep):
 
         z1 = mock.Mock(player_name="z1")
         z2 = mock.Mock(player_name="z2")
@@ -75,9 +82,13 @@ class TestKnxSonos(unittest.TestCase):
         mock_discover.return_value = [z1, z2]
 
         s = knxsonos.sonos.SonosCtrl(["z1", "z2"])
+        self.sonos = s
         s.start()
-
-        mock_discover.assert_called_with(10)
+        time.sleep(0.5)
+        mock_discover.assert_called_once_with(10)
+        mock_sleep.assert_called_once_with(1)
+        time.sleep(1)
+        self.assertEqual(mock_sleep.call_count, 2)
 
         s.play("z1")
         z1.group.coordinator.play.assert_called_once_with()
