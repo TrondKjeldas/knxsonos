@@ -17,7 +17,6 @@
 #     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 #
 from soco import discover
-from soco.discovery import by_name as discover_by_name
 from time import sleep
 from threading import Thread, Lock
 import logging
