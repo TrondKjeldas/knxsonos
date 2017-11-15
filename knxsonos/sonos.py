@@ -118,15 +118,17 @@ class SonosCtrl():
             self.logger.warning("Zone(%s): Illegal volume value: %d" % (zn, value))
             return
 
-        self.zones[zn].group.coordinator.volume = value
+        # For volumeSet we set the volume for all zones in the group
+        for m in self.zones[zn].group.members:
+            m.volume = value
 
     def volumeUp(self, zn):
-        if self.zones[zn].group.coordinator.volume < 100:
-            self.zones[zn].group.coordinator.volume += 1
+        if self.zones[zn].volume < 100:
+            self.zones[zn].volume += 1
 
     def volumeDown(self, zn):
-        if self.zones[zn].group.coordinator.volume > 0:
-            self.zones[zn].group.coordinator.volume -= 1
+        if self.zones[zn].volume > 0:
+            self.zones[zn].volume -= 1
 
     def setURI(self, zn, value):
 
