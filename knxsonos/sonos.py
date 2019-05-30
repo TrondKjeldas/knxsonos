@@ -20,6 +20,7 @@ from soco import discover
 from time import sleep
 from threading import Thread, Lock
 import logging
+from requests.exceptions import ConnectionError
 
 #
 #
@@ -107,12 +108,19 @@ class SonosCtrl():
 
             for z in list(zones_discovered):
 
-                addOrReplaceZone(z)
-
                 try:
-                    zones_needed.remove(z.player_name)
-                except ValueError:
-                    self.logger.debug("Did not want: %s" %z.player_name)
+                    addOrReplaceZone(z)
+
+                    try:
+                        zones_needed.remove(z.player_name)
+                    except ValueError:
+                        self.logger.debug("Did not want: %s" %z.player_name)
+
+                except ConnectionError:
+
+                    # Trouble connecting to the zone, skip it for now
+                    self.logger.warning("Connection trouble...")
+                    continue
 
             for z in zones_needed:
                 removeZone(z)
