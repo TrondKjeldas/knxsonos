@@ -101,6 +101,10 @@ class SonosCtrl():
 
             zones_discovered = discover(10)
 
+            if zones_discovered == None:
+                self.logger.warning("No zones discovered yet")
+                continue
+
             for z in list(zones_discovered):
 
                 addOrReplaceZone(z)
